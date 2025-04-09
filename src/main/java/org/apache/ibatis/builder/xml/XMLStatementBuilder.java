@@ -76,7 +76,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String id = context.getStringAttribute("id");
     String databaseId = context.getStringAttribute("databaseId");
 
-    //如果databaseId不匹配，退出
+    //这个方法在MyBatis的多数据库支持中起到了关键作用，确保SQL语句能够正确地与目标数据库匹配。
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
@@ -114,7 +114,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     //是否要缓存select结果
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
     //仅针对嵌套结果 select 语句适用：如果为 true，就是假设包含了嵌套结果集或是分组了，这样的话当返回一个主结果行的时候，就不会发生有对前面结果集的引用的情况。
-    //这就使得在获取嵌套的结果集的时候不至于导致内存不够用。默认值：false。 
+    //这就使得在获取嵌套的结果集的时候不至于导致内存不够用。默认值：false。
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
@@ -125,7 +125,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     // Parse selectKey after includes and remove them.
     //解析之前先解析<selectKey>
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
-    
+
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
     //解析成SqlSource，一般是DynamicSqlSource
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
@@ -148,7 +148,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 	//又去调助手类
     builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
         fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
-        resultSetTypeEnum, flushCache, useCache, resultOrdered, 
+        resultSetTypeEnum, flushCache, useCache, resultOrdered,
         keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
   }
 
@@ -210,6 +210,12 @@ public class XMLStatementBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 当指定了requiredDatabaseId时，只有匹配的SQL语句才会被使用
+   * 当没有指定requiredDatabaseId时，只有没有指定databaseId的SQL语句才会被使用
+   * 防止出现相同id但不同databaseId的SQL语句冲突
+   * 这个方法在MyBatis的多数据库支持中起到了关键作用，确保SQL语句能够正确地与目标数据库匹配。
+   */
   private boolean databaseIdMatchesCurrent(String id, String databaseId, String requiredDatabaseId) {
     if (requiredDatabaseId != null) {
       if (!requiredDatabaseId.equals(databaseId)) {
