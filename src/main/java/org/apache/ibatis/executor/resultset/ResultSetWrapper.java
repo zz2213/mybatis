@@ -36,6 +36,9 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
+ * 缓存并管理结果集的列名、列类型等元数据信息
+ * 通过 TypeHandlerRegistry 实现 Java 类型与数据库类型的转换
+ * 支持自动下划线转驼峰等命名转换规则
  * @author Iwao AVE!
  */
 class ResultSetWrapper {

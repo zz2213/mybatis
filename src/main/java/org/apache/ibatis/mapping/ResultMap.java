@@ -39,9 +39,9 @@ public class ResultMap {
   private List<ResultMapping> constructorResultMappings;
   private List<ResultMapping> propertyResultMappings;
   private Set<String> mappedColumns;
-  private Discriminator discriminator;
-  private boolean hasNestedResultMaps;
-  private boolean hasNestedQueries;
+  private Discriminator discriminator; // 鉴别器（用于实现继承映射）
+  private boolean hasNestedResultMaps; // 是否包含嵌套结果映射
+  private boolean hasNestedQueries; //是否包含嵌套查询
   private Boolean autoMapping;
 
   private ResultMap() {

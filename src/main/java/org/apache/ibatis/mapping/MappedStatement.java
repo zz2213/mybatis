@@ -37,30 +37,30 @@ import org.apache.ibatis.session.Configuration;
  */
 public final class MappedStatement {
 
-  private String resource;
-  private Configuration configuration;
-  private String id;
-  private Integer fetchSize;
-  private Integer timeout;
-  private StatementType statementType;
-  private ResultSetType resultSetType;
+  private String resource; // 映射文件资源路径
+  private Configuration configuration;// MyBatis 全局配置对象
+  private String id; // 语句的唯一标识，通常是 namespace + id
+  private Integer fetchSize;  // JDBC fetchSize 参数
+  private Integer timeout; // 查询超时时间
+  private StatementType statementType; // 语句类型(PREPARED, CALLABLE等)
+  private ResultSetType resultSetType; // 结果集类型
   //SQL源码
-  private SqlSource sqlSource;
-  private Cache cache;
-  private ParameterMap parameterMap;
-  private List<ResultMap> resultMaps;
-  private boolean flushCacheRequired;
-  private boolean useCache;
-  private boolean resultOrdered;
-  private SqlCommandType sqlCommandType;
-  private KeyGenerator keyGenerator;
-  private String[] keyProperties;
-  private String[] keyColumns;
-  private boolean hasNestedResultMaps;
-  private String databaseId;
-  private Log statementLog;
-  private LanguageDriver lang;
-  private String[] resultSets;
+  private SqlSource sqlSource; // SQL 源，包含原始 SQL 和参数映射
+  private Cache cache; // 二级缓存实例
+  private ParameterMap parameterMap; // 参数映射配置
+  private List<ResultMap> resultMaps; // 结果集映射配置
+  private boolean flushCacheRequired; // 执行时是否需要清空缓存
+  private boolean useCache; // 是否使用二级缓存
+  private boolean resultOrdered; // 结果是否有序
+  private SqlCommandType sqlCommandType; // SQL 命令类型(SELECT, INSERT等)
+  private KeyGenerator keyGenerator; // 主键生成器
+  private String[] keyProperties; // 主键属性名
+  private String[] keyColumns; // 主键列名
+  private boolean hasNestedResultMaps; // 是否有嵌套结果映射
+  private String databaseId; // 数据库厂商ID
+  private Log statementLog; // 日志记录器
+  private LanguageDriver lang; // 语言驱动(处理动态SQL)
+  private String[] resultSets; // 多结果集名称
 
   MappedStatement() {
     // constructor disabled

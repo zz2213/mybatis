@@ -161,7 +161,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 
     List<ResultMap> resultMaps = mappedStatement.getResultMaps();
-    //一般resultMaps里只有一个元素
+    //一般resultMaps里只有一个元素 存储过程，SQL批处理，resultSets 显示设置返回多个结果集 时处理多结果集
     int resultMapCount = resultMaps.size();
     validateResultMapsCount(rsw, resultMapCount);
     while (rsw != null && resultMapCount > resultSetCount) {
@@ -210,15 +210,24 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private ResultSetWrapper getNextResultSet(Statement stmt) throws SQLException {
     // Making this method tolerant of bad JDBC drivers
+    // 1. 异常处理：兼容不同JDBC驱动实现
     try {
+      // 2. 检查数据库是否支持多结果集
       if (stmt.getConnection().getMetaData().supportsMultipleResultSets()) {
         // Crazy Standard JDBC way of determining if there are more results
+        /* 3. JDBC标准方式检查是否有更多结果：
+               - stmt.getMoreResults()：尝试移动到下一个结果集
+               - stmt.getUpdateCount() == -1：确认不是UPDATE/INSERT等操作结果
+               双重否定逻辑简化：!(!A && B) 等价于 (A || !B)
+            */
         if (!((!stmt.getMoreResults()) && (stmt.getUpdateCount() == -1))) {
+          // 4. 获取当前结果集并包装
           ResultSet rs = stmt.getResultSet();
           return rs != null ? new ResultSetWrapper(rs, configuration) : null;
         }
       }
     } catch (Exception e) {
+      // 5. 故意忽略异常（兼容性处理）
       // Intentionally ignored.
     }
     return null;
@@ -668,6 +677,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private Object getNestedQueryConstructorValue(ResultSet rs, ResultMapping constructorMapping, String columnPrefix) throws SQLException {
     final String nestedQueryId = constructorMapping.getNestedQueryId();
+    // 1. 获取嵌套查询的MappedStatement
     final MappedStatement nestedQuery = configuration.getMappedStatement(nestedQueryId);
     final Class<?> nestedQueryParameterType = nestedQuery.getParameterMap().getType();
     final Object nestedQueryParameterObject = prepareParameterForNestedQuery(rs, constructorMapping, nestedQueryParameterType, columnPrefix);
@@ -687,11 +697,14 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       throws SQLException {
     final String nestedQueryId = propertyMapping.getNestedQueryId();
     final String property = propertyMapping.getProperty();
+    // 1. 获取嵌套查询的MappedStatement
     final MappedStatement nestedQuery = configuration.getMappedStatement(nestedQueryId);
     final Class<?> nestedQueryParameterType = nestedQuery.getParameterMap().getType();
+    // 2. 准备查询参数（从主查询结果集提取）
     final Object nestedQueryParameterObject = prepareParameterForNestedQuery(rs, propertyMapping, nestedQueryParameterType, columnPrefix);
     Object value = NO_VALUE;
     if (nestedQueryParameterObject != null) {
+      // 3. 创建CacheKey
       final BoundSql nestedBoundSql = nestedQuery.getBoundSql(nestedQueryParameterObject);
       final CacheKey key = executor.createCacheKey(nestedQuery, nestedQueryParameterObject, RowBounds.DEFAULT, nestedBoundSql);
       final Class<?> targetType = propertyMapping.getJavaType();
@@ -702,6 +715,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     	//否则lazyLoader.addLoader 需要延迟加载则addLoader
     	//或者ResultLoader.loadResult 不需要延迟加载则立即加载
         final ResultLoader resultLoader = new ResultLoader(configuration, executor, nestedQuery, nestedQueryParameterObject, targetType, key, nestedBoundSql);
+        // 4. 处理懒加载
         if (propertyMapping.isLazy()) {
           lazyLoader.addLoader(property, metaResultObject, resultLoader);
         } else {
